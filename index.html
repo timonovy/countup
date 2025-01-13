@@ -4,54 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Persistent Timer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 18px;
-            margin-top: 20px;
-        }
-        #timer {
-            margin-top: 20px;
-            font-size: 24px;
-        }
-    </style>
 </head>
 <body>
-    <h1>Do you want to be my girlfriend?</h1>
-    <button id="startButton" onclick="startTimer()">Yes</button>
-    <div id="timer">0 Days, 0 Hours, 0 Minutes, 0 Seconds</div>
-    <script>
-        const backendUrl = 'https://countup-3bed.onrender.com'; // Replace this with your Render backend URL
+    <h1>Persistent Timer</h1>
+    <div>
+        <button id="startButton">Start Timer</button>
+    </div>
+    <div id="timerDisplay">Days: 0, Hours: 0, Minutes: 0, Seconds: 0</div>
 
-        async function startTimer() {
-            await fetch(`${backendUrl}/startTimer`, { method: 'POST' });
-            document.getElementById('startButton').disabled = true;
-            fetchStartTimeAndRunTimer();
+    <script>
+        const startButton = document.getElementById("startButton");
+        const timerDisplay = document.getElementById("timerDisplay");
+        let isTimerStarted = false;
+
+        // Fetch the start time from the backend
+        async function fetchStartTime() {
+            try {
+                const response = await fetch("https://your-backend-url.onrender.com/getStartTime");
+                const data = await response.json();
+                return data.startTime; // Return the startTime in milliseconds
+            } catch (error) {
+                console.error("Failed to fetch start time:", error);
+                return null;
+            }
         }
 
-        async function fetchStartTimeAndRunTimer() {
-            const response = await fetch(`${backendUrl}/getStartTime`);
-            const data = await response.json();
-            const startTime = parseInt(data.startTime, 10);
+        // Start the timer by sending a request to the backend
+        async function startTimer() {
+            try {
+                const response = await fetch("https://your-backend-url.onrender.com/startTimer", {
+                    method: "POST",
+                });
+                if (response.ok) {
+                    console.log("Timer started successfully");
+                    startButton.disabled = true; // Disable the button
+                } else {
+                    console.error("Failed to start timer");
+                }
+            } catch (error) {
+                console.error("Error starting the timer:", error);
+            }
+        }
 
+        // Update the timer display
+        function updateTimerDisplay(startTime) {
             setInterval(() => {
                 const now = Date.now();
                 const elapsed = now - startTime;
-                const days = Math.floor(elapsed / (24 * 3600 * 1000));
-                const hours = Math.floor((elapsed % (24 * 3600 * 1000)) / (3600 * 1000));
-                const minutes = Math.floor((elapsed % (3600 * 1000)) / (60 * 1000));
-                const seconds = Math.floor((elapsed % (60 * 1000)) / 1000);
-                document.getElementById('timer').textContent =
-                    `${days} Days, ${hours} Hours, ${minutes} Minutes, ${seconds} Seconds`;
+
+                const days = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((elapsed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((elapsed % (1000 * 60)) / 1000);
+
+                timerDisplay.textContent = `Days: ${days}, Hours: ${hours}, Minutes: ${minutes}, Seconds: ${seconds}`;
             }, 1000);
         }
 
-        window.onload = fetchStartTimeAndRunTimer;
+        // Initialize the frontend
+        async function initialize() {
+            const startTime = await fetchStartTime();
+
+            if (startTime) {
+                // Timer is already running; update the display
+                isTimerStarted = true;
+                startButton.disabled = true; // Disable the button if timer is already started
+                updateTimerDisplay(startTime);
+            }
+
+            startButton.addEventListener("click", async () => {
+                if (!isTimerStarted) {
+                    await startTimer();
+                    const newStartTime = await fetchStartTime();
+                    if (newStartTime) {
+                        updateTimerDisplay(newStartTime);
+                    }
+                }
+            });
+        }
+
+        // Run the initialization
+        initialize();
     </script>
 </body>
 </html>
