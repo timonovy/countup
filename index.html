@@ -20,7 +20,7 @@
         // Fetch the start time from the backend
         async function fetchStartTime() {
             try {
-                const response = await fetch("https://your-backend-url.onrender.com/getStartTime");
+                const response = await fetch("https://countup-3bed.onrender.com");
                 const data = await response.json();
                 return data.startTime; // Return the startTime in milliseconds
             } catch (error) {
@@ -32,7 +32,7 @@
         // Start the timer by sending a request to the backend
         async function startTimer() {
             try {
-                const response = await fetch("https://your-backend-url.onrender.com/startTimer", {
+                const response = await fetch("https://countup-3bed.onrender.com", {
                     method: "POST",
                 });
                 if (response.ok) {
