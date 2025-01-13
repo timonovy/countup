@@ -3,70 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Timer App</title>
+  <title>Persistent Timer</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f4f4f9;
-    }
-    .container {
       text-align: center;
+      margin-top: 50px;
     }
     button {
       padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: #4CAF50;
-      color: white;
-      border: none;
-      border-radius: 5px;
-    }
-    button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+      font-size: 18px;
+      margin-top: 20px;
     }
     #timer {
       margin-top: 20px;
       font-size: 24px;
-      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <button id="startButton" onclick="startTimer()">Start Timer</button>
-    <div id="timer">0 Days, 0 Hours, 0 Minutes, 0 Seconds</div>
-  </div>
-
+  <h1>Persistent Timer</h1>
+  <button id="startButton" onclick="startTimer()">Start Timer</button>
+  <div id="timer">0 Days, 0 Hours, 0 Minutes, 0 Seconds</div>
   <script>
-    let timerInterval;
-    function startTimer() {
-      let seconds = 0;
+    const backendUrl = 'https://your-backend-url.onrender.com'; // Replace this with the Render backend URL
 
-      // Disable the button to prevent multiple presses
-      const button = document.getElementById('startButton');
-      button.disabled = true;
+    async function startTimer() {
+      await fetch(`${backendUrl}/startTimer`, { method: 'POST' });
+      document.getElementById('startButton').disabled = true;
+      fetchStartTimeAndRunTimer();
+    }
 
-      // Start the timer
-      timerInterval = setInterval(() => {
-        seconds++;
+    async function fetchStartTimeAndRunTimer() {
+      const response = await fetch(`${backendUrl}/getStartTime`);
+      const data = await response.json();
+      const startTime = parseInt(data.startTime, 10);
 
-        // Calculate days, hours, minutes, and seconds
-        const days = Math.floor(seconds / (24 * 3600));
-        const hours = Math.floor((seconds % (24 * 3600)) / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = seconds % 60;
-
-        // Update the timer display
+      setInterval(() => {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const days = Math.floor(elapsed / (24 * 3600 * 1000));
+        const hours = Math.floor((elapsed % (24 * 3600 * 1000)) / (3600 * 1000));
+        const minutes = Math.floor((elapsed % (3600 * 1000)) / (60 * 1000));
+        const seconds = Math.floor((elapsed % (60 * 1000)) / 1000);
         document.getElementById('timer').textContent = 
-          `${days} Days, ${hours} Hours, ${minutes} Minutes, ${remainingSeconds} Seconds`;
+          `${days} Days, ${hours} Hours, ${minutes} Minutes, ${seconds} Seconds`;
       }, 1000);
     }
+
+    window.onload = fetchStartTimeAndRunTimer;
   </script>
 </body>
 </html>
