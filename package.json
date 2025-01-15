@@ -1,13 +1,17 @@
 {
-    "name": "persistent-timer-backend",
-    "version": "1.0.0",
-    "main": "server.js",
-    "scripts": {
-        "start": "node server.js"
-    },
-    "dependencies": {
-        "cors": "^2.8.5",
-        "express": "^4.18.2",
-        "mysql2": "^3.6.0"
-    }
+  "name": "countup-timer",
+  "version": "1.0.0",
+  "description": "A simple count-up timer with MySQL database integration.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1"
+  },
+  "engines": {
+    "node": ">=16"
+  }
 }
