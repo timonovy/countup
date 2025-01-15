@@ -22,7 +22,9 @@ db.connect((err) => {
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 app.get('/api/start-time', (req, res) => {
   db.query('SELECT startTime FROM timer ORDER BY id DESC LIMIT 1', (err, results) => {
     if (err) {
