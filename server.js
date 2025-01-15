@@ -1,78 +1,57 @@
-const path = require('path'); // Add this at the top if not already imported
-
-// Route to serve the frontend (index.html)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
 const express = require('express');
-const mysql = require('mysql');
-const cors = require('cors');
-
+const mysql = require('mysql2');
+const path = require('path');
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
-
-// Database connection
 const db = mysql.createConnection({
   host: 'sql7.freemysqlhosting.net',
   user: 'sql7757428',
   password: 'ANGIciKEKe',
   database: 'sql7757428',
+  port: 3306,
 });
 
 db.connect((err) => {
   if (err) {
-    console.error('Error connecting to the database:', err);
+    console.error('Error connecting to database:', err);
     process.exit(1);
   }
-  console.log('Connected to MySQL database');
+  console.log('Connected to database');
 });
 
-// API Endpoints
-app.post('/startTimer', (req, res) => {
-  const startTime = Date.now();
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-  db.query('SELECT startTime FROM timer ORDER BY id DESC LIMIT 1', (err, result) => {
-    if (err) {
-      console.error('Error checking start time:', err);
-      return res.status(500).send('Database error');
-    }
-
-    if (result.length > 0) {
-      return res.status(400).send('Timer already started');
-    }
-
-    db.query('INSERT INTO timer (startTime) VALUES (?)', [startTime], (err) => {
-      if (err) {
-        console.error('Error inserting start time:', err);
-        return res.status(500).send('Database error');
-      }
-      res.sendStatus(200);
-    });
-  });
-});
-
-app.get('/getStartTime', (req, res) => {
-  db.query('SELECT startTime FROM timer ORDER BY id DESC LIMIT 1', (err, result) => {
+app.get('/api/start-time', (req, res) => {
+  db.query('SELECT startTime FROM timer ORDER BY id DESC LIMIT 1', (err, results) => {
     if (err) {
       console.error('Error fetching start time:', err);
-      return res.status(500).send('Database error');
+      return res.status(500).json({ error: 'Database error' });
     }
-
-    if (result.length === 0) {
-      return res.json({ startTime: null });
+    if (results.length > 0) {
+      res.json({ startTime: results[0].startTime });
+    } else {
+      res.json({ startTime: null });
     }
-
-    res.json({ startTime: parseInt(result[0].startTime, 10) });
   });
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+app.post('/api/start-timer', (req, res) => {
+  const now = new Date();
+  db.query('INSERT INTO timer (startTime) VALUES (?)', [now], (err) => {
+    if (err) {
+      console.error('Error inserting start time:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.status(200).json({ message: 'Timer started' });
+  });
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
