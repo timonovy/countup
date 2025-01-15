@@ -1,80 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Countup Timer</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #timer {
-      margin-top: 20px;
-      font-size: 24px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistent Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        #timer {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+    </style>
 </head>
 <body>
-  <h1>Countup Timer</h1>
-  <button id="startButton">Start Timer</button>
-  <div id="timer">0d 0h 0m 0s</div>
+    <h1>Persistent Timer</h1>
+    <button id="startButton" onclick="startTimer()">Start Timer</button>
+    <div id="timer">0 Days, 0 Hours, 0 Minutes, 0 Seconds</div>
+    <script>
+        const backendUrl = 'https://your-backend-url.onrender.com'; // Replace this with your Render backend URL
 
-  <script>
-    const startButton = document.getElementById('startButton');
-    const timerDisplay = document.getElementById('timer');
+        async function startTimer() {
+            await fetch(`${backendUrl}/startTimer`, { method: 'POST' });
+            document.getElementById('startButton').disabled = true;
+            fetchStartTimeAndRunTimer();
+        }
 
-    async function fetchStartTime() {
-      try {
-        const response = await fetch('/api/start-time');
-        if (!response.ok) throw new Error('Failed to fetch start time');
-        const data = await response.json();
-        return new Date(data.startTime);
-      } catch (error) {
-        console.error('Error fetching start time:', error);
-        return null;
-      }
-    }
+        async function fetchStartTimeAndRunTimer() {
+            const response = await fetch(`${backendUrl}/getStartTime`);
+            const data = await response.json();
+            const startTime = parseInt(data.startTime, 10);
 
-    async function startTimer() {
-      try {
-        const response = await fetch('/api/start-timer', { method: 'POST' });
-        if (!response.ok) throw new Error('Failed to start timer');
-        startButton.disabled = true;
-        updateTimerDisplay(await fetchStartTime());
-      } catch (error) {
-        console.error('Error starting timer:', error);
-      }
-    }
+            setInterval(() => {
+                const now = Date.now();
+                const elapsed = now - startTime;
+                const days = Math.floor(elapsed / (24 * 3600 * 1000));
+                const hours = Math.floor((elapsed % (24 * 3600 * 1000)) / (3600 * 1000));
+                const minutes = Math.floor((elapsed % (3600 * 1000)) / (60 * 1000));
+                const seconds = Math.floor((elapsed % (60 * 1000)) / 1000);
+                document.getElementById('timer').textContent =
+                    `${days} Days, ${hours} Hours, ${minutes} Minutes, ${seconds} Seconds`;
+            }, 1000);
+        }
 
-    function updateTimerDisplay(startTime) {
-      if (!startTime) return;
-      setInterval(() => {
-        const now = new Date();
-        const diff = now - startTime;
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-        timerDisplay.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-      }, 1000);
-    }
-
-    startButton.addEventListener('click', startTimer);
-
-    (async function initialize() {
-      const startTime = await fetchStartTime();
-      if (startTime) {
-        startButton.disabled = true;
-        updateTimerDisplay(startTime);
-      }
-    })();
-  </script>
+        window.onload = fetchStartTimeAndRunTimer;
+    </script>
 </body>
 </html>
