@@ -10,6 +10,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+const path = require('path'); // Add this at the top if not already imported
+
+// Route to serve the frontend (index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // Database connection
 const db = mysql.createConnection({
   host: 'sql7.freemysqlhosting.net',
