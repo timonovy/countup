@@ -42,7 +42,7 @@ app.post('/api/start-timer', (req, res) => {
   db.query('INSERT INTO timer (startTime) VALUES (?)', [now], (err) => {
     if (err) {
       console.error('Error inserting start time:', err);
-      return res.status(500).json({ error: 'Database error' });
+      return res.status(500).json({ error: 'Databases error' });
     }
     res.status(200).json({ message: 'Timer started' });
   });
