@@ -1,3 +1,10 @@
+const path = require('path'); // Add this at the top if not already imported
+
+// Route to serve the frontend (index.html)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
@@ -9,13 +16,6 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
-
-const path = require('path'); // Add this at the top if not already imported
-
-// Route to serve the frontend (index.html)
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 // Database connection
 const db = mysql.createConnection({
